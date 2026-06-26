@@ -1,103 +1,231 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verificación de Certificado · AKADEM</title>
-  <style>
-    :root{ --orange:#E8490F; --navy:#2D3142; --light:#F8F7F4; }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--light);color:var(--navy);
-      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-    .card{background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(45,49,66,.12);
-      max-width:640px;width:100%;overflow:hidden;}
-    .head{background:var(--navy);color:#fff;padding:28px 32px;text-align:center;}
-    .head .brand{font-size:26px;font-weight:800;letter-spacing:2px;}
-    .head .brand span{color:var(--orange);}
-    .head .sub{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:3px;margin-top:4px;}
-    .body{padding:32px;}
-    .status{display:flex;align-items:center;gap:12px;padding:16px;border-radius:10px;margin-bottom:24px;font-weight:600;}
-    .ok{background:#e8f5e9;color:#2e7d32;}
-    .bad{background:#ffebee;color:#c62828;}
-    .pending{background:#fff8e1;color:#f57f17;}
-    .status .icon{font-size:24px;}
-    .row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee;font-size:14px;}
-    .row .k{color:#888;}
-    .row .v{font-weight:600;text-align:right;}
-    .btn{display:block;width:100%;text-align:center;background:var(--orange);color:#fff;
-      text-decoration:none;padding:14px;border-radius:10px;font-weight:700;margin-top:24px;transition:.2s;}
-    .btn:hover{background:#c93c0a;}
-    .btn-alt{background:#2D3142;margin-top:10px;}
-    .btn-alt:hover{background:#1f222e;}
-    .doc-frame{margin-top:24px;width:100%;aspect-ratio:1056/747;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0;background:#f5f5f5;}
-    .doc-frame iframe{width:100%;height:100%;border:0;display:block;}
-    .code{font-family:monospace;font-size:12px;color:#999;text-align:center;margin-top:20px;word-break:break-all;}
-    .foot{text-align:center;font-size:11px;color:#aaa;padding:16px;border-top:1px solid #f0f0f0;}
-    .loader{text-align:center;padding:40px;color:#999;}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verificación de Certificado — AKADEM</title>
+<style>
+  :root{
+    --navy:#2D3142; --orange:#E8490F; --light:#F8F7F4;
+    --ink:#1f2430; --muted:#6b7280; --line:#e5e7eb;
+    --ok:#10b981; --okbg:#ecfdf5; --err:#dc2626; --errbg:#fef2f2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Plus Jakarta Sans','DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--light); color:var(--ink); min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px;
+  }
+  .wrap{width:100%; max-width:680px;}
+  .card{
+    background:#fff; border-radius:16px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(45,49,66,.10); border:1px solid var(--line);
+  }
+  .head{
+    background:var(--navy); color:#fff; padding:30px 28px; text-align:center;
+  }
+  .brand{font-size:26px; font-weight:800; letter-spacing:.04em;}
+  .brand span{color:var(--orange);}
+  .head .sub{font-size:11px; font-weight:600; letter-spacing:.22em; color:#aab0c0; margin-top:6px; text-transform:uppercase;}
+  .body{padding:28px;}
+
+  .state{
+    display:flex; align-items:center; gap:14px;
+    border-radius:12px; padding:18px 20px; margin-bottom:22px;
+  }
+  .state.ok{background:var(--okbg); border:1px solid #a7f3d0;}
+  .state.err{background:var(--errbg); border:1px solid #fecaca;}
+  .state.load{background:#f3f4f6; border:1px solid var(--line);}
+  .state .ic{font-size:22px; line-height:1;}
+  .state.ok .ic{color:var(--ok);}
+  .state.err .ic{color:var(--err);}
+  .state .tt{font-size:16px; font-weight:800;}
+  .state.ok .tt{color:#047857;}
+  .state.err .tt{color:#b91c1c;}
+  .state .ds{font-size:12.5px; color:var(--muted); margin-top:2px;}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 22px; margin:6px 0 22px;}
+  .grid .full{grid-column:1 / -1;}
+  .f .k{font-size:10.5px; font-weight:700; letter-spacing:.06em; color:var(--muted); text-transform:uppercase;}
+  .f .v{font-size:14.5px; font-weight:600; color:var(--ink); margin-top:3px; word-break:break-word;}
+  .code{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; color:var(--navy); background:#f3f4f6; padding:2px 8px; border-radius:6px;}
+
+  .pdfbox{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:6px;}
+  .pdfbox .bar{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:#fafafa; border-bottom:1px solid var(--line);}
+  .pdfbox .bar .lbl{font-size:12.5px; font-weight:700; color:var(--navy);}
+  .btn{
+    display:inline-block; background:var(--orange); color:#fff; text-decoration:none;
+    font-size:12.5px; font-weight:700; padding:8px 14px; border-radius:8px; transition:background .15s;
+  }
+  .btn:hover{background:#cf3f0c;}
+  .pdfframe{width:100%; height:520px; border:0; display:block; background:#fff;}
+  .nopdf{font-size:12.5px; color:var(--muted); padding:18px; text-align:center;}
+
+  .foot{text-align:center; font-size:11px; color:var(--muted); padding:18px;}
+  .spin{width:18px;height:18px;border:3px solid #d1d5db;border-top-color:var(--orange);border-radius:50%;animation:sp .8s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media(max-width:520px){.grid{grid-template-columns:1fr;} .pdfframe{height:60vh;}}
+</style>
+
+<!-- Firebase Compat (mismo proyecto que la Suite) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="card">
-    <div class="head">
-      <div class="brand">AKADE<span>M</span></div>
-      <div class="sub">Verificación de Certificado</div>
-    </div>
-    <div class="body" id="content">
-      <div class="loader">Verificando…</div>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div class="brand">AKADE<span>M</span></div>
+        <div class="sub">Verificación de Certificado</div>
+      </div>
+      <div class="body">
+        <div id="state" class="state load">
+          <div class="ic"><div class="spin"></div></div>
+          <div>
+            <div class="tt">Verificando…</div>
+            <div class="ds">Consultando el registro oficial de AKADEM.</div>
+          </div>
+        </div>
+        <div id="detail"></div>
+      </div>
     </div>
     <div class="foot">AKADEM · OTEC acreditada SENCE · www.akadem.cl</div>
   </div>
 
 <script>
-  // >>> AJUSTA ESTO con la URL Web App del Apps Script (doGet) <<<
-  const API_URL = "https://script.google.com/macros/s/AKfycbxevhW0vYA1I_ExBk_z3R_aaKmrJFlto_-6DEiE3mvYV9mONOd4sUcrbAhrPSN2uqIfyw/exec";
+  // ── Config Firebase (proyecto akadem-diplomas) ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyD7oxOmRKCkHE-6e8v6sqi_NWYLLQGPjQQ",
+    authDomain: "akadem-diplomas.firebaseapp.com",
+    projectId: "akadem-diplomas",
+    storageBucket: "akadem-diplomas.firebasestorage.app",
+    messagingSenderId: "965969058399",
+    appId: "1:965969058399:web:f680d28da4a366cd8819ea"
+  };
 
-  const params = new URLSearchParams(location.search);
-  const code = (params.get("id") || "").trim();
-  const content = document.getElementById("content");
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.error("Firebase init:", e); }
 
-  function render(html){ content.innerHTML = html; }
-
-  if(!code){
-    render(`<div class="status bad"><span class="icon">✕</span> Código de verificación no proporcionado.</div>
-            <p style="font-size:13px;color:#888;">Escanea el código QR del certificado para verificar su autenticidad.</p>`);
-  } else if(API_URL.startsWith("PEGA_AQUI")){
-    // Modo demo: sin backend configurado todavía
-    render(`<div class="status pending"><span class="icon">⏳</span> Página de verificación en configuración.</div>
-            <p style="font-size:13px;color:#888;">El código recibido es válido en formato, pero el índice de verificación aún no está conectado.</p>
-            <div class="code">Código: ${code}</div>`);
-  } else {
-    fetch(API_URL + "?id=" + encodeURIComponent(code))
-      .then(r => r.json())
-      .then(j => {
-        if(j.ok && j.data){
-          const d = j.data;
-          const pdfBlock = d.fileId
-            ? `<div class="doc-frame">
-                 <iframe src="https://drive.google.com/file/d/${d.fileId}/preview" allow="autoplay" title="Documento oficial AKADEM"></iframe>
-               </div>
-               <a class="btn btn-alt" href="https://drive.google.com/uc?export=download&id=${d.fileId}">⬇ Descargar PDF</a>`
-            : `<p style="font-size:12px;color:#f57f17;text-align:center;margin-top:16px;">Documento registrado. PDF en proceso de vinculación.</p>`;
-          render(`
-            <div class="status ok"><span class="icon">✓</span> Certificado auténtico y válido</div>
-            <div class="row"><span class="k">Participante</span><span class="v">${d.alumno||'—'}</span></div>
-            <div class="row"><span class="k">RUT</span><span class="v">${d.rut||'—'}</span></div>
-            <div class="row"><span class="k">Curso</span><span class="v">${d.curso||'—'}</span></div>
-            <div class="row"><span class="k">Tipo</span><span class="v" style="text-transform:capitalize">${d.tipo||'—'}</span></div>
-            <div class="row"><span class="k">Emisión</span><span class="v">${d.fecha||'—'}</span></div>
-            ${pdfBlock}
-            <div class="code">${d.codigo}</div>`);
-        } else {
-          render(`<div class="status bad"><span class="icon">✕</span> Certificado no encontrado</div>
-                  <p style="font-size:13px;color:#888;">El código no corresponde a ningún certificado emitido por AKADEM. Si crees que es un error, contáctanos a administracion@akadem.cl.</p>
-                  <div class="code">Código consultado: ${code}</div>`);
-        }
-      })
-      .catch(() => {
-        render(`<div class="status bad"><span class="icon">✕</span> Error de conexión</div>
-                <p style="font-size:13px;color:#888;">No se pudo consultar el índice de verificación. Intenta nuevamente.</p>`);
-      });
+  function getParam(name){
+    const u = new URLSearchParams(window.location.search);
+    return (u.get(name) || "").trim();
   }
+  function esc(s){
+    return String(s == null ? "" : s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function fmtFecha(iso){
+    if(!iso) return "—";
+    try{
+      const d = new Date(iso);
+      if(isNaN(d)) return esc(iso);
+      return d.toLocaleDateString("es-CL",{day:"2-digit",month:"long",year:"numeric"});
+    }catch(_){ return esc(iso); }
+  }
+  function tipoLabel(t){
+    if(t==="ambos") return "Certificado y Diploma";
+    if(t==="certificado") return "Certificado";
+    if(t==="diploma") return "Diploma";
+    return t ? esc(t) : "Documento";
+  }
+
+  function setState(kind, title, desc){
+    const el = document.getElementById("state");
+    el.className = "state " + kind;
+    const ic = kind==="ok" ? "✓" : kind==="err" ? "✕" : '<div class="spin"></div>';
+    el.innerHTML =
+      '<div class="ic">'+ic+'</div>'+
+      '<div><div class="tt">'+esc(title)+'</div><div class="ds">'+esc(desc)+'</div></div>';
+  }
+
+  function renderValido(doc, code){
+    setState("ok","Certificado válido","Documento emitido y registrado oficialmente por AKADEM.");
+    const detail = document.getElementById("detail");
+
+    let pdfHtml = "";
+    if(doc.pdfUrl){
+      pdfHtml =
+        '<div class="f full" style="margin-top:6px;">'+
+          '<div class="k" style="margin-bottom:8px;">Documento</div>'+
+          '<div class="pdfbox">'+
+            '<div class="bar">'+
+              '<span class="lbl">Vista del documento</span>'+
+              '<a class="btn" href="'+esc(doc.pdfUrl)+'" target="_blank" rel="noopener">Abrir / Descargar PDF</a>'+
+            '</div>'+
+            '<iframe class="pdfframe" src="'+esc(doc.pdfUrl)+'#toolbar=1" title="Documento PDF"></iframe>'+
+          '</div>'+
+        '</div>';
+    } else {
+      pdfHtml =
+        '<div class="f full"><div class="pdfbox"><div class="nopdf">'+
+        'El documento es auténtico. El PDF aún no está disponible en línea para este registro.'+
+        '</div></div></div>';
+    }
+
+    detail.innerHTML =
+      '<div class="grid">'+
+        '<div class="f"><div class="k">Alumno</div><div class="v">'+esc(doc.nombre||"—")+'</div></div>'+
+        '<div class="f"><div class="k">RUT</div><div class="v">'+esc(doc.rut||"—")+'</div></div>'+
+        '<div class="f full"><div class="k">Curso</div><div class="v">'+esc(doc.cursoNombre||"—")+'</div></div>'+
+        '<div class="f"><div class="k">Tipo</div><div class="v">'+tipoLabel(doc.type)+'</div></div>'+
+        '<div class="f"><div class="k">Fecha de emisión</div><div class="v">'+fmtFecha(doc.emitidoAt)+'</div></div>'+
+        '<div class="f full"><div class="k">Código de verificación</div><div class="v"><span class="code">'+esc(code)+'</span></div></div>'+
+      '</div>'+ pdfHtml;
+  }
+
+  function renderNoEncontrado(code){
+    setState("err","Certificado no encontrado",
+      "El código no corresponde a ningún certificado emitido por AKADEM.");
+    document.getElementById("detail").innerHTML =
+      '<div class="grid"><div class="f full"><div class="k">Código consultado</div>'+
+      '<div class="v"><span class="code">'+esc(code||"—")+'</span></div></div></div>'+
+      '<p style="font-size:12.5px;color:var(--muted);line-height:1.6;">'+
+      'Si crees que es un error, contáctanos a administracion@akadem.cl.</p>';
+  }
+
+  function renderError(code){
+    setState("err","No se pudo verificar",
+      "Hubo un problema al consultar el registro. Inténtalo nuevamente en unos minutos.");
+    document.getElementById("detail").innerHTML =
+      '<div class="grid"><div class="f full"><div class="k">Código consultado</div>'+
+      '<div class="v"><span class="code">'+esc(code||"—")+'</span></div></div></div>';
+  }
+
+  async function verificar(){
+    const code = getParam("id");
+    if(!code){
+      setState("err","Falta el código","No se indicó ningún código de verificación en el enlace.");
+      return;
+    }
+    if(!db){ renderError(code); return; }
+
+    try{
+      // Buscar en la subcolección común de documentos por su código estable.
+      const ref = db.collection("akadem_certificaciones").doc("_shared").collection("documentos");
+      const snap = await ref.where("verifyCode","==",code).limit(5).get();
+
+      if(snap.empty){ renderNoEncontrado(code); return; }
+
+      // Si hay varios (cert + diploma del mismo alumno), preferir el que tenga PDF.
+      let chosen = null;
+      snap.forEach(d => {
+        const data = d.data();
+        if(!chosen) chosen = data;
+        else if(!chosen.pdfUrl && data.pdfUrl) chosen = data;
+      });
+      renderValido(chosen, code);
+    }catch(e){
+      console.error("Error de verificación:", e);
+      renderError(code);
+    }
+  }
+
+  verificar();
 </script>
 </body>
 </html>
